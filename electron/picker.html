@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'" />
+    <title>Choose what to share</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        background: #fafafa;
+        color: #171717;
+        overflow: hidden;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+      .window {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        border: 1px solid #e5e5e5;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #ffffff;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 18px;
+        border-bottom: 1px solid #f0f0f0;
+        -webkit-app-region: drag;
+      }
+      header h1 {
+        font-size: 14px;
+        font-weight: 600;
+      }
+      header p {
+        font-size: 12px;
+        color: #737373;
+        margin-top: 2px;
+      }
+      #cancel {
+        -webkit-app-region: no-drag;
+        border: 1px solid #e5e5e5;
+        background: #fff;
+        color: #525252;
+        font-size: 12px;
+        font-weight: 500;
+        padding: 7px 14px;
+        border-radius: 999px;
+        cursor: pointer;
+      }
+      #cancel:hover {
+        background: #f5f5f5;
+        color: #171717;
+      }
+      .section-title {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #a3a3a3;
+        padding: 14px 18px 8px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        padding: 0 18px 18px;
+        overflow-y: auto;
+        flex: 1;
+      }
+      .card {
+        border: 1px solid #e5e5e5;
+        border-radius: 12px;
+        background: #fff;
+        overflow: hidden;
+        cursor: pointer;
+        text-align: left;
+        padding: 0;
+        transition:
+          border-color 0.12s ease,
+          box-shadow 0.12s ease;
+      }
+      .card:hover {
+        border-color: #171717;
+        box-shadow: 0 6px 18px rgba(23, 23, 23, 0.08);
+      }
+      .thumb {
+        width: 100%;
+        aspect-ratio: 16 / 10;
+        object-fit: cover;
+        display: block;
+        background: #f5f5f5;
+      }
+      .card .name {
+        font-size: 12px;
+        color: #404040;
+        padding: 8px 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .empty {
+        grid-column: 1 / -1;
+        color: #a3a3a3;
+        font-size: 13px;
+        text-align: center;
+        padding: 40px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="window">
+      <header>
+        <div>
+          <h1>Choose what to share</h1>
+          <p>Pick a screen or window to record with Graphics Board.</p>
+        </div>
+        <button id="cancel" type="button">Cancel</button>
+      </header>
+      <div id="content"></div>
+    </div>
+    <script>
+      function card(source) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "card";
+        if (source.thumbnail) {
+          const img = document.createElement("img");
+          img.className = "thumb";
+          img.src = source.thumbnail;
+          img.alt = "";
+          button.appendChild(img);
+        } else {
+          const blank = document.createElement("div");
+          blank.className = "thumb";
+          button.appendChild(blank);
+        }
+        const name = document.createElement("div");
+        name.className = "name";
+        name.textContent = source.name;
+        button.appendChild(name);
+        button.addEventListener("click", () => window.picker.select(source.id));
+        return button;
+      }
+
+      function render(sources) {
+        const content = document.getElementById("content");
+        content.innerHTML = "";
+        const screens = sources.filter((s) => s.isScreen);
+        const windows = sources.filter((s) => !s.isScreen);
+        for (const [title, list] of [
+          ["Entire screen", screens],
+          ["Windows", windows],
+        ]) {
+          if (!list.length) continue;
+          const heading = document.createElement("div");
+          heading.className = "section-title";
+          heading.textContent = title;
+          content.appendChild(heading);
+          const grid = document.createElement("div");
+          if (title === "Windows") grid.style.marginBottom = "18px";
+          grid.className = "grid";
+          list.forEach((s) => grid.appendChild(card(s)));
+          content.appendChild(grid);
+        }
+        if (!sources.length) {
+          const empty = document.createElement("div");
+          empty.className = "empty";
+          empty.textContent = "Nothing available to share.";
+          content.appendChild(empty);
+        }
+      }
+
+      window.picker.onSources(render);
+      document.getElementById("cancel").addEventListener("click", () => window.picker.cancel());
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") window.picker.cancel();
+      });
+    </script>
+  </body>
+</html>

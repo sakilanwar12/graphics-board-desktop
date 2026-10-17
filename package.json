@@ -1,0 +1,84 @@
+{
+  "name": "graphics-board-desktop",
+  "version": "0.1.1",
+  "description": "Desktop whiteboard for graphics tablets — pressure-sensitive pen, screen recording with microphone, and PNG export. Ubuntu/Linux app built with Electron.",
+  "license": "MIT",
+  "author": "Graphics Board Contributors <sakilanwar12@users.noreply.github.com>",
+  "homepage": "https://graphicsboard.vercel.app",
+  "private": true,
+  "main": "electron/main.js",
+  "desktopName": "graphics-board.desktop",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "electron .",
+    "lint": "eslint",
+    "dist": "npm run build && electron-builder --linux",
+    "release": "bash scripts/release.sh"
+  },
+  "dependencies": {
+    "lucide-react": "^1.58.0",
+    "next": "16.4.2",
+    "perfect-freehand": "^1.2.3",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/turbopack": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "electron": "^44.9.0",
+    "electron-builder": "^26.15.3",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.2",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  },
+  "build": {
+    "appId": "app.graphicsboard.desktop",
+    "productName": "Graphics Board",
+    "artifactName": "graphics-board-${version}-${arch}.${ext}",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "electron/**/*",
+      "out/**/*",
+      "package.json"
+    ],
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "icon": "build/icon.png",
+      "category": "Education",
+      "syncDesktopName": true,
+      "maintainer": "Graphics Board Contributors <sakilanwar12@users.noreply.github.com>",
+      "synopsis": "Pressure-sensitive whiteboard for graphics tablets",
+      "description": "Graphics Board is a whiteboard made for graphics tablets: pressure-sensitive pen, highlighter, shapes, graph paper backgrounds, laser pointer, infinite canvas, screen recording with microphone voice-over, and PNG export.",
+      "desktop": {
+        "entry": {
+          "Name": "Graphics Board",
+          "Comment": "Pressure-sensitive whiteboard for graphics tablets",
+          "Categories": "Education;Graphics;",
+          "Keywords": "whiteboard;drawing;tablet;teaching;"
+        }
+      }
+    },
+    "deb": {
+      "depends": [
+        "libnotify4",
+        "libnss3",
+        "libxss1",
+        "libxtst6",
+        "xdg-utils",
+        "libatspi2.0-0t64 | libatspi2.0-0",
+        "libuuid1",
+        "libsecret-1-0"
+      ]
+    }
+  }
+}
