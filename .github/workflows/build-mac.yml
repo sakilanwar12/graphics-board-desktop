@@ -26,7 +26,7 @@ jobs:
         run: npm run build
 
       - name: Package macOS app
-        run: npx electron-builder --mac --universal -c.mac.identity=-
+        run: npx electron-builder --mac --universal -c.mac.identity=- --publish never
 
       - name: Stage stable asset names
         run: |
