@@ -1,7 +1,7 @@
 {
   "name": "graphics-board-desktop",
   "version": "0.1.1",
-  "description": "Desktop whiteboard for graphics tablets — pressure-sensitive pen, screen recording with microphone, and PNG export. Ubuntu/Linux app built with Electron.",
+  "description": "Desktop whiteboard for graphics tablets — pressure-sensitive pen, screen recording with microphone, and PNG export. Built with Electron for Linux and macOS.",
   "license": "MIT",
   "author": "Graphics Board Contributors <sakilanwar12@users.noreply.github.com>",
   "homepage": "https://graphicsboard.vercel.app",
@@ -14,15 +14,10 @@
     "start": "electron .",
     "lint": "eslint",
     "dist": "npm run build && electron-builder --linux",
+    "dist:mac": "npm run build && electron-builder --mac",
     "release": "bash scripts/release.sh"
   },
-  "dependencies": {
-    "lucide-react": "^1.58.0",
-    "next": "16.4.2",
-    "perfect-freehand": "^1.2.3",
-    "react": "19.3.0",
-    "react-dom": "19.3.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
@@ -32,6 +27,11 @@
     "electron-builder": "^26.15.3",
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
+    "lucide-react": "^1.58.0",
+    "next": "16.4.2",
+    "perfect-freehand": "^1.2.3",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   },
@@ -66,6 +66,22 @@
           "Categories": "Education;Graphics;",
           "Keywords": "whiteboard;drawing;tablet;teaching;"
         }
+      }
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.education",
+      "icon": "build/icon.png",
+      "artifactName": "graphics-board-${version}-mac-${arch}.${ext}",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "Graphics Board uses the microphone to record your voice while screen recording."
       }
     },
     "deb": {

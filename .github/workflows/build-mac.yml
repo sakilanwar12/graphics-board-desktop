@@ -1,0 +1,55 @@
+name: Build macOS
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build renderer (Next.js static export)
+        run: npm run build
+
+      - name: Package macOS app
+        run: npx electron-builder --mac --universal -c.mac.identity=-
+
+      - name: Stage stable asset names
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          mkdir -p release/upload
+          cp "release/graphics-board-$VERSION-mac-universal.dmg" release/upload/graphics-board-mac-universal.dmg
+          cp "release/graphics-board-$VERSION-mac-universal.zip" release/upload/graphics-board-mac-universal.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: graphics-board-mac-universal
+          path: release/upload/*
+
+      - name: Publish assets to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" release/upload/* --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" \
+              --title "Graphics Board $GITHUB_REF_NAME" \
+              --generate-notes \
+              release/upload/*
+          fi

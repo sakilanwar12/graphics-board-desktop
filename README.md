@@ -1,15 +1,15 @@
 # Graphics Board (Desktop)
 
-Desktop whiteboard built for graphics tablets, packaged for Linux as **AppImage** and **Debian (.deb)** with Electron.
+Desktop whiteboard built for graphics tablets, packaged with Electron for Linux (**AppImage** and **Debian .deb**) and macOS (**universal DMG** for Apple Silicon + Intel).
 
 Pressure-sensitive pen, highlighter, shapes, graph paper backgrounds, laser pointer, infinite pan/zoom canvas, screen recording with microphone voice-over, and PNG export.
 
-## Download / Install (Ubuntu)
+## Download / Install
 
-Download the latest release:
+Latest release:
 
-- [graphics-board-amd64.deb](https://github.com/sakilanwar12/graphics-board-desktop/releases/latest/download/graphics-board-amd64.deb)
-- [graphics-board-x86_64.AppImage](https://github.com/sakilanwar12/graphics-board-desktop/releases/latest/download/graphics-board-x86_64.AppImage)
+- Linux: [graphics-board-amd64.deb](https://github.com/sakilanwar12/graphics-board-desktop/releases/latest/download/graphics-board-amd64.deb) · [graphics-board-x86_64.AppImage](https://github.com/sakilanwar12/graphics-board-desktop/releases/latest/download/graphics-board-x86_64.AppImage)
+- macOS: [graphics-board-mac-universal.dmg](https://github.com/sakilanwar12/graphics-board-desktop/releases/latest/download/graphics-board-mac-universal.dmg)
 
 ```bash
 # Debian/Ubuntu — recommended: handles sandbox & AppArmor setup automatically
@@ -20,6 +20,12 @@ chmod +x ./graphics-board-x86_64.AppImage
 ./graphics-board-x86_64.AppImage
 ```
 
+macOS: open the `.dmg` and drag **Graphics Board** into Applications. The build is
+not notarized (no Apple Developer certificate), so macOS Gatekeeper will warn on
+first launch — right-click the app and choose **Open**, or run
+`xattr -cr "/Applications/Graphics Board.app"`. The first screen recording asks
+for Screen Recording and Microphone permission in System Settings.
+
 Notes:
 
 - On Ubuntu 24.04+ the AppImage may be blocked by AppArmor's unprivileged
@@ -29,7 +35,7 @@ Notes:
 - Screen recording uses a native source picker (entire screen / window) and
   records in MP4 when the platform supports it, falling back to WebM.
 - `--enable-features=WebRTCPipeWireCapturer` is applied automatically for
-  Wayland screen capture.
+  Wayland screen capture (Linux only).
 
 ## Development
 
@@ -45,27 +51,53 @@ Electron main process loads `out/index.html` from disk.
 ## Building packages
 
 ```bash
-npm run dist       # next build + electron-builder --linux (AppImage + deb)
+npm run dist       # Linux: next build + electron-builder --linux (AppImage + deb)
+npm run dist:mac   # macOS: next build + electron-builder --mac (dmg + zip)
 ```
 
-Artifacts land in `release/` as `graphics-board-<version>-amd64.deb` and
-`graphics-board-<version>-x86_64.AppImage`.
+Artifacts land in `release/`.
+
+- Linux: `graphics-board-<version>-amd64.deb` and
+  `graphics-board-<version>-x86_64.AppImage`.
+- macOS: `graphics-board-<version>-mac-<arch>.dmg` and `.zip`
+  (`arch` is `universal`, `arm64`, or `x64`).
+
+Linux build requirements:
 
 - Building the `.deb` requires `ar` from binutils: `sudo apt install binutils`
   if the build fails with `Need executable 'ar' to convert dir to deb`.
 - AppImage packing has no extra system requirements.
+
+macOS build requirements:
+
+- DMG creation uses `hdiutil`, so `npm run dist:mac` must run on macOS (or the
+  `Build macOS` GitHub Actions workflow).
+- For a release build, also pass `--universal` for a single Apple Silicon +
+  Intel DMG: `npx electron-builder --mac --universal`.
+- On a Mac without an Apple Developer certificate, add `-c.mac.identity=-` to
+  ad-hoc sign the app (required for the arm64 slice to launch).
+- For quick testing, an unsigned x64 `.zip` can be cross-built on Linux with
+  `npx electron-builder --mac zip --x64` (no DMG, no signing).
 
 ## Releasing
 
 One-time setup: install and authenticate the GitHub CLI (`gh auth login`).
 
 ```bash
-npm run release    # dist + create/update the v<version> GitHub release
+npm run release    # Linux: dist + create/update the v<version> GitHub release
 ```
 
-The release publishes the two assets under stable names
+The release publishes the Linux assets under stable names
 (`graphics-board-amd64.deb`, `graphics-board-x86_64.AppImage`) so the
 `releases/latest/download/...` links on the website never change.
+
+macOS assets are built by the `Build macOS` workflow
+(`.github/workflows/build-mac.yml`), which runs on `macos-latest` for tags
+`v*` (and manually via *workflow_dispatch*). It uploads a universal, ad-hoc
+signed DMG and attaches them to the same GitHub release as
+`graphics-board-mac-universal.dmg`. Pushing a tag builds and publishes both
+platforms: the Linux release script and the macOS workflow both create the
+release if it does not exist yet.
 
 ## Project layout
 
@@ -76,7 +108,9 @@ lib/                  Geometry, drawing, zoom helpers
 electron/main.js      Main process: window, display-media picker, permissions
 electron/picker.html  Screen/window picker window UI
 electron/picker-preload.js
-build/icon.png        Packaging icon
+build/icon.png        Packaging icon (converted to .icns for macOS)
+build/entitlements.mac.plist  macOS hardened-runtime entitlements
+.github/workflows/build-mac.yml  macOS DMG/zip build & release
 public/               Web icons
 out/                  Static export (generated)
 release/              Packaged artifacts (generated)

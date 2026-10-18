@@ -11,7 +11,9 @@ const {
 const path = require("path");
 const { pathToFileURL } = require("url");
 
-app.commandLine.appendSwitch("enable-features", "WebRTCPipeWireCapturer");
+if (process.platform === "linux") {
+  app.commandLine.appendSwitch("enable-features", "WebRTCPipeWireCapturer");
+}
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -146,7 +148,10 @@ function registerDisplayMediaHandler() {
         }
         callback({
           video: source,
-          audio: request.audioRequested ? "loopback" : undefined,
+          audio:
+            request.audioRequested && process.platform !== "darwin"
+              ? "loopback"
+              : undefined,
         });
       } catch {
         callback();
@@ -198,5 +203,5 @@ app.whenReady().then(() => {
 });
 
 app.on("window-all-closed", () => {
-  app.quit();
+  if (process.platform !== "darwin") app.quit();
 });
