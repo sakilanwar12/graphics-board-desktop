@@ -15,6 +15,10 @@ if (process.platform === "linux") {
   app.commandLine.appendSwitch("enable-features", "WebRTCPipeWireCapturer");
 }
 
+if (process.platform === "win32") {
+  app.setAppUserModelId("app.graphicsboard.desktop");
+}
+
 protocol.registerSchemesAsPrivileged([
   {
     scheme: "app",

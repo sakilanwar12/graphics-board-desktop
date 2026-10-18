@@ -1,6 +1,6 @@
 # Graphics Board (Desktop)
 
-Desktop whiteboard built for graphics tablets, packaged with Electron for Linux (**AppImage** and **Debian .deb**) and macOS (**universal DMG** for Apple Silicon + Intel).
+Desktop whiteboard built for graphics tablets, packaged with Electron for Linux (**AppImage** and **Debian .deb**), macOS (**universal DMG** for Apple Silicon + Intel), and Windows (**installer** and **portable exe**).
 
 Pressure-sensitive pen, highlighter, shapes, graph paper backgrounds, laser pointer, infinite pan/zoom canvas, screen recording with microphone voice-over, and PNG export.
 
@@ -10,6 +10,7 @@ Latest release:
 
 - Linux: [graphics-board-amd64.deb](https://github.com/sakilanwar12/graphics-board-desktop/releases/latest/download/graphics-board-amd64.deb) · [graphics-board-x86_64.AppImage](https://github.com/sakilanwar12/graphics-board-desktop/releases/latest/download/graphics-board-x86_64.AppImage)
 - macOS: [graphics-board-mac-universal.dmg](https://github.com/sakilanwar12/graphics-board-desktop/releases/latest/download/graphics-board-mac-universal.dmg)
+- Windows: [graphics-board-win-x64-setup.exe](https://github.com/sakilanwar12/graphics-board-desktop/releases/latest/download/graphics-board-win-x64-setup.exe) · [graphics-board-win-x64-portable.exe](https://github.com/sakilanwar12/graphics-board-desktop/releases/latest/download/graphics-board-win-x64-portable.exe)
 
 ```bash
 # Debian/Ubuntu — recommended: handles sandbox & AppArmor setup automatically
@@ -25,6 +26,13 @@ not notarized (no Apple Developer certificate), so macOS Gatekeeper will warn on
 first launch — right-click the app and choose **Open**, or run
 `xattr -cr "/Applications/Graphics Board.app"`. The first screen recording asks
 for Screen Recording and Microphone permission in System Settings.
+
+Windows: run `graphics-board-win-x64-setup.exe` to install (per-user, no admin
+needed; you can pick the install folder and get desktop/Start Menu shortcuts),
+or run `graphics-board-win-x64-portable.exe` directly without installing. The
+build is unsigned (no code-signing certificate), so Windows SmartScreen may show
+"Windows protected your PC" on first run — click **More info** → **Run anyway**,
+and the microphone prompt appears on first screen recording.
 
 Notes:
 
@@ -53,6 +61,7 @@ Electron main process loads `out/index.html` from disk.
 ```bash
 npm run dist       # Linux: next build + electron-builder --linux (AppImage + deb)
 npm run dist:mac   # macOS: next build + electron-builder --mac (dmg + zip)
+npm run dist:win   # Windows: next build + electron-builder --win (installer + portable)
 ```
 
 Artifacts land in `release/`.
@@ -61,12 +70,17 @@ Artifacts land in `release/`.
   `graphics-board-<version>-x86_64.AppImage`.
 - macOS: `graphics-board-<version>-mac-<arch>.dmg` and `.zip`
   (`arch` is `universal`, `arm64`, or `x64`).
+- Windows: `graphics-board-<version>-win-setup-x64.exe` and
+  `graphics-board-<version>-win-portable-x64.exe`.
 
 Linux build requirements:
 
 - Building the `.deb` requires `ar` from binutils: `sudo apt install binutils`
   if the build fails with `Need executable 'ar' to convert dir to deb`.
 - AppImage packing has no extra system requirements.
+- Building the Windows installer on Linux requires wine (used to extract the
+  unsigned uninstaller). Install both loaders:
+  `sudo dpkg --add-architecture i386 && sudo apt update && sudo apt install wine wine32:i386`
 
 macOS build requirements:
 
@@ -79,23 +93,30 @@ macOS build requirements:
 - For quick testing, an unsigned x64 `.zip` can be cross-built on Linux with
   `npx electron-builder --mac zip --x64` (no DMG, no signing).
 
+Windows build requirements:
+
+- Building natively on Windows needs no extra tools. Building on Linux also
+  works with wine installed (see above); the result is identical.
+
 ## Releasing
 
 One-time setup: install and authenticate the GitHub CLI (`gh auth login`).
 
 ```bash
-npm run release    # Linux: dist + create/update the v<version> GitHub release
+npm run release    # Linux + Windows: dist + create/update the v<version> release
 ```
 
 The release publishes the Linux assets under stable names
-(`graphics-board-amd64.deb`, `graphics-board-x86_64.AppImage`) so the
+(`graphics-board-amd64.deb`, `graphics-board-x86_64.AppImage`) and the Windows
+assets as `graphics-board-win-x64-setup.exe` and
+`graphics-board-win-x64-portable.exe`, so the
 `releases/latest/download/...` links on the website never change.
 
 macOS assets are built by the `Build macOS` workflow
 (`.github/workflows/build-mac.yml`), which runs on `macos-latest` for tags
 `v*` (and manually via *workflow_dispatch*). It uploads a universal, ad-hoc
 signed DMG and attaches them to the same GitHub release as
-`graphics-board-mac-universal.dmg`. Pushing a tag builds and publishes both
+`graphics-board-mac-universal.dmg`. Pushing a tag builds and publishes all
 platforms: the Linux release script and the macOS workflow both create the
 release if it does not exist yet.
 
